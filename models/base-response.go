@@ -1,6 +1,6 @@
 package models
 
 type BaseResponse struct {
-	Message      string
-	AlertVariant AlertVariant
+	Message      string       `json:"message"`
+	AlertVariant AlertVariant `json:"alertVariant"`
 }

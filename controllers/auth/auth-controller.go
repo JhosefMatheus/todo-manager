@@ -1,7 +1,6 @@
 package authcontroller
 
 import (
-	"fmt"
 	"net/http"
 	authservice "todo-manager/services/auth"
 
@@ -10,8 +9,6 @@ import (
 
 func SignIn(c *gin.Context) {
 	signInResponse := authservice.SignIn()
-
-	fmt.Print(signInResponse)
 
 	c.IndentedJSON(http.StatusOK, signInResponse)
 }
