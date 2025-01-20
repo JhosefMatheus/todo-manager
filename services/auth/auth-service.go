@@ -1,0 +1,17 @@
+package authservice
+
+import (
+	"todo-manager/models"
+	"todo-manager/services/responses"
+)
+
+func SignIn() responses.SignInResponse {
+	response := responses.SignInResponse{
+		BaseResponse: models.BaseResponse{
+			Message:      "Usuário autenticado com sucesso.",
+			AlertVariant: models.SuccessAlertVariant,
+		},
+	}
+
+	return response
+}
