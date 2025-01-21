@@ -2,7 +2,7 @@ package authservice
 
 import (
 	"todo-manager/models"
-	"todo-manager/services/responses"
+	"todo-manager/services/auth/responses"
 )
 
 func SignIn() responses.SignInResponse {
