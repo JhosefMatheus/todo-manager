@@ -5,6 +5,7 @@ import (
 	"todo-manager/models"
 	"todo-manager/services/auth/responses"
 	dbservice "todo-manager/services/db"
+	tokenservice "todo-manager/services/token"
 )
 
 func SignIn(email string, password string) (code int, errResponse *models.BaseResponse, response *responses.SignInResponse) {
@@ -42,11 +43,21 @@ func SignIn(email string, password string) (code int, errResponse *models.BaseRe
 		}, nil
 	}
 
+	token, err := tokenservice.GenerateToken(user)
+
+	if err != nil {
+		return http.StatusInternalServerError, &models.BaseResponse{
+			Message:      "Erro inesperado no servidor ao gerar o token de autenticação.",
+			AlertVariant: models.ErrorAlertVariant,
+		}, nil
+	}
+
 	return http.StatusOK, nil, &responses.SignInResponse{
 		BaseResponse: models.BaseResponse{
 			Message:      "Usuário autenticado com sucesso.",
 			AlertVariant: models.SuccessAlertVariant,
 		},
-		User: user,
+		User:  user,
+		Token: token,
 	}
 }
