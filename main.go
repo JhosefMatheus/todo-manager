@@ -2,9 +2,10 @@ package main
 
 import (
 	"log"
+	"net/http"
 	authcontroller "todo-manager/controllers/auth"
+	middleware "todo-manager/middlewares"
 
-	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )
 
@@ -15,11 +16,11 @@ func main() {
 		log.Fatalf("Erro ao carregar .env %v", err)
 	}
 
-	router := gin.Default()
+	mux := http.NewServeMux()
 
-	router.POST("/auth/sign-in", authcontroller.SignIn)
+	mux.HandleFunc("/auth/sign-in", authcontroller.SignIn)
 
-	if err := router.Run("localhost:8080"); err != nil {
+	if err := http.ListenAndServe(":8080", middleware.GlobalMiddleware(mux)); err != nil {
 		log.Fatalf("Erro ao iniciar o servidor: %v", err)
 	}
 }

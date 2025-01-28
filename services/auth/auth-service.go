@@ -2,14 +2,17 @@ package authservice
 
 import (
 	"net/http"
+	"todo-manager/controllers/auth/dto"
 	"todo-manager/models"
 	"todo-manager/services/auth/responses"
 	dbservice "todo-manager/services/db"
 	tokenservice "todo-manager/services/token"
 )
 
-func SignIn(email string, password string) (code int, errResponse *models.BaseResponse, response *responses.SignInResponse) {
+func SignIn(signInDTO dto.SignInDTO) (code int, errResponse *models.BaseResponse, response *responses.SignInResponse) {
 	db, err := dbservice.GetDbConnection()
+
+	defer dbservice.CloseDbConnection(db)
 
 	if err != nil {
 		return http.StatusInternalServerError, &models.BaseResponse{
@@ -18,7 +21,21 @@ func SignIn(email string, password string) (code int, errResponse *models.BaseRe
 		}, nil
 	}
 
-	rows, err := db.Query("select id, name, email, created_at, updated_at from user where email = ? and password = sha2(?, 256) limit 1;", email, password)
+	email, password := signInDTO.Email, signInDTO.Password
+
+	sql := `
+		select
+			id,
+			name,
+			email,
+			created_at,
+			updated_at
+		from user
+		where email = ? and password = sha2(?, 256)
+		limit 1;
+	`
+
+	rows, err := db.Query(sql, email, password)
 
 	if err != nil {
 		return http.StatusInternalServerError, &models.BaseResponse{

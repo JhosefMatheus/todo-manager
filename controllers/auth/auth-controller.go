@@ -1,35 +1,55 @@
 package authcontroller
 
 import (
+	"encoding/json"
+	"io"
 	"net/http"
 	"todo-manager/controllers/auth/dto"
 	"todo-manager/models"
 	authservice "todo-manager/services/auth"
-
-	"github.com/gin-gonic/gin"
 )
 
-func SignIn(c *gin.Context) {
-	var requestBody dto.SignInDTO
-
-	if err := c.BindJSON(&requestBody); err != nil {
-		var response = models.BaseResponse{
-			Message:      "DTO inválido",
+func SignIn(w http.ResponseWriter, req *http.Request) {
+	if req.Method != http.MethodPost {
+		responseBody := models.BaseResponse{
+			Message:      "Método não permitido. /auth/sign-in só aceita POST",
 			AlertVariant: models.WarningAlertVariant,
 		}
 
-		c.IndentedJSON(http.StatusForbidden, response)
+		w.WriteHeader(http.StatusMethodNotAllowed)
+
+		if err := json.NewEncoder(w).Encode(responseBody); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
 
 		return
 	}
 
-	email, password := requestBody.Email, requestBody.Password
+	body, err := io.ReadAll(req.Body)
 
-	status, errResponse, signInResponse := authservice.SignIn(email, password)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	var dto dto.SignInDTO
+
+	if err = json.Unmarshal(body, &dto); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	status, errResponse, signInResponse := authservice.SignIn(dto)
+
+	w.WriteHeader(status)
 
 	if errResponse != nil {
-		c.IndentedJSON(status, errResponse)
+		if err = json.NewEncoder(w).Encode(errResponse); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
 	} else {
-		c.IndentedJSON(status, signInResponse)
+		if err = json.NewEncoder(w).Encode(signInResponse); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
 	}
 }
