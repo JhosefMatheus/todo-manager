@@ -12,14 +12,14 @@ import (
 func SignIn(signInDTO dto.SignInDTO) (code int, errResponse *models.BaseResponse, response *responses.SignInResponse) {
 	db, err := dbservice.GetDbConnection()
 
-	defer dbservice.CloseDbConnection(db)
-
 	if err != nil {
 		return http.StatusInternalServerError, &models.BaseResponse{
 			Message:      "Erro inesperado no banco de dados ao realizar o login.",
 			AlertVariant: models.ErrorAlertVariant,
 		}, nil
 	}
+
+	defer dbservice.CloseDbConnection(db)
 
 	email, password := signInDTO.Email, signInDTO.Password
 
