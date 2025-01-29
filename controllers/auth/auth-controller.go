@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	auth_constants "todo-manager/constants"
 	"todo-manager/controllers/auth/dto"
 	"todo-manager/models"
 	authservice "todo-manager/services/auth"
@@ -12,7 +13,7 @@ import (
 func SignIn(w http.ResponseWriter, req *http.Request) {
 	if req.Method != http.MethodPost {
 		responseBody := models.BaseResponse{
-			Message:      "Método não permitido. /auth/sign-in só aceita POST",
+			Message:      auth_constants.SignInMethodNotAllowedMessage,
 			AlertVariant: models.WarningAlertVariant,
 		}
 
@@ -43,7 +44,7 @@ func SignIn(w http.ResponseWriter, req *http.Request) {
 		message := ""
 
 		if dto.IsEmailInvalid() {
-			message += "O email é obrigatório e tem que ser uma string."
+			message += auth_constants.SignInInvalidEmailMessage
 		}
 
 		if dto.IsPasswordInvalid() {
@@ -51,7 +52,7 @@ func SignIn(w http.ResponseWriter, req *http.Request) {
 				message += "\n"
 			}
 
-			message += "A senha é obrigatória e tem que ser uma string."
+			message += auth_constants.SignInInvalidPasswordMessage
 		}
 
 		response := models.BaseResponse{

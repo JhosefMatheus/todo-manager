@@ -4,9 +4,11 @@ import (
 	"bytes"
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	auth_constants "todo-manager/constants"
 	"todo-manager/controllers/auth/dto"
 	"todo-manager/models"
 	"todo-manager/services/auth/responses"
@@ -36,7 +38,7 @@ func TestInvalidRequestMethod(t *testing.T) {
 	}
 
 	expectedBody := models.BaseResponse{
-		Message:      "Método não permitido. /auth/sign-in só aceita POST",
+		Message:      auth_constants.SignInMethodNotAllowedMessage,
 		AlertVariant: models.WarningAlertVariant,
 	}
 
@@ -72,7 +74,7 @@ func TestInvalidDTO(t *testing.T) {
 	}
 
 	expectedBody := models.BaseResponse{
-		Message:      "O email é obrigatório e tem que ser uma string.\nA senha é obrigatória e tem que ser uma string.",
+		Message:      fmt.Sprintf("%s\n%s", auth_constants.SignInInvalidEmailMessage, auth_constants.SignInInvalidPasswordMessage),
 		AlertVariant: models.WarningAlertVariant,
 	}
 
@@ -122,7 +124,7 @@ func TestInvalidCredentials(t *testing.T) {
 	}
 
 	expectedBody := models.BaseResponse{
-		Message:      "Login ou senha inválido.",
+		Message:      auth_constants.SignInUnauthorizedMessage,
 		AlertVariant: models.WarningAlertVariant,
 	}
 
@@ -207,7 +209,7 @@ func TestSignIn(t *testing.T) {
 
 	expectedBody := responses.SignInResponse{
 		BaseResponse: models.BaseResponse{
-			Message:      "Usuário autenticado com sucesso.",
+			Message:      auth_constants.SignInSuccessMessage,
 			AlertVariant: models.SuccessAlertVariant,
 		},
 		User: insertedUser,

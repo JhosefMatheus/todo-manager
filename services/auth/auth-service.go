@@ -2,6 +2,7 @@ package authservice
 
 import (
 	"net/http"
+	auth_constants "todo-manager/constants"
 	"todo-manager/controllers/auth/dto"
 	"todo-manager/models"
 	"todo-manager/services/auth/responses"
@@ -14,7 +15,7 @@ func SignIn(signInDTO dto.SignInDTO) (code int, errResponse *models.BaseResponse
 
 	if err != nil {
 		return http.StatusInternalServerError, &models.BaseResponse{
-			Message:      "Erro inesperado no banco de dados ao realizar o login.",
+			Message:      auth_constants.SignInDbConnectionErrorMessage,
 			AlertVariant: models.ErrorAlertVariant,
 		}, nil
 	}
@@ -39,7 +40,7 @@ func SignIn(signInDTO dto.SignInDTO) (code int, errResponse *models.BaseResponse
 
 	if err != nil {
 		return http.StatusInternalServerError, &models.BaseResponse{
-			Message:      "Erro inesperado no banco de dados ao realizar o login.",
+			Message:      auth_constants.SignInDbConnectionErrorMessage,
 			AlertVariant: models.ErrorAlertVariant,
 		}, nil
 	}
@@ -49,13 +50,13 @@ func SignIn(signInDTO dto.SignInDTO) (code int, errResponse *models.BaseResponse
 	if rows.Next() {
 		if err := rows.Scan(&user.Id, &user.Name, &user.Email, &user.CreatedAt, &user.UpdatedAt); err != nil {
 			return http.StatusInternalServerError, &models.BaseResponse{
-				Message:      "Erro inesperado no banco de dados ao realizar login.",
+				Message:      auth_constants.SignInDbConnectionErrorMessage,
 				AlertVariant: models.ErrorAlertVariant,
 			}, nil
 		}
 	} else {
 		return http.StatusUnauthorized, &models.BaseResponse{
-			Message:      "Login ou senha inválido.",
+			Message:      auth_constants.SignInUnauthorizedMessage,
 			AlertVariant: models.WarningAlertVariant,
 		}, nil
 	}
@@ -64,14 +65,14 @@ func SignIn(signInDTO dto.SignInDTO) (code int, errResponse *models.BaseResponse
 
 	if err != nil {
 		return http.StatusInternalServerError, &models.BaseResponse{
-			Message:      "Erro inesperado no servidor ao gerar o token de autenticação.",
+			Message:      auth_constants.SignInGenerateTokenErrorMessage,
 			AlertVariant: models.ErrorAlertVariant,
 		}, nil
 	}
 
 	return http.StatusOK, nil, &responses.SignInResponse{
 		BaseResponse: models.BaseResponse{
-			Message:      "Usuário autenticado com sucesso.",
+			Message:      auth_constants.SignInSuccessMessage,
 			AlertVariant: models.SuccessAlertVariant,
 		},
 		User:  user,
