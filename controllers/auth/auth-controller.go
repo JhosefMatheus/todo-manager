@@ -39,6 +39,34 @@ func SignIn(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	if dto.IsInvalid() {
+		message := ""
+
+		if dto.IsEmailInvalid() {
+			message += "O email é obrigatório e tem que ser uma string."
+		}
+
+		if dto.IsPasswordInvalid() {
+			if len(message) > 0 {
+				message += "\n"
+			}
+
+			message += "A senha é obrigatória e tem que ser uma string."
+		}
+
+		response := models.BaseResponse{
+			Message:      message,
+			AlertVariant: models.WarningAlertVariant,
+		}
+
+		w.WriteHeader(http.StatusForbidden)
+
+		if err = json.NewEncoder(w).Encode(response); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+		return
+	}
+
 	status, errResponse, signInResponse := authservice.SignIn(dto)
 
 	w.WriteHeader(status)

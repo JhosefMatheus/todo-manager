@@ -2,6 +2,7 @@ package authcontroller
 
 import (
 	"bytes"
+	"database/sql"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -14,36 +15,145 @@ import (
 	"github.com/joho/godotenv"
 )
 
-func TestSignIn(t *testing.T) {
-	if err := godotenv.Load("../../.env"); err != nil {
-		t.Errorf("Erro ao conectar no banco: %v", err)
+func TestInvalidRequestMethod(t *testing.T) {
+	setupEnv(t)
+
+	dto := dto.SignInDTO{}
+
+	var dtoBytes bytes.Buffer
+
+	if err := json.NewEncoder(&dtoBytes).Encode(dto); err != nil {
+		t.Errorf("Erro ao codificar dto: %v", err)
 	}
+
+	res := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodPut, "/auth/sing-in", &dtoBytes)
+
+	SignIn(res, req)
+
+	if http.StatusMethodNotAllowed != res.Code {
+		t.Errorf("Código de status esperado: %d, recebeu: %d", http.StatusMethodNotAllowed, res.Code)
+	}
+
+	expectedBody := models.BaseResponse{
+		Message:      "Método não permitido. /auth/sign-in só aceita POST",
+		AlertVariant: models.WarningAlertVariant,
+	}
+
+	var resBody models.BaseResponse
+
+	if err := json.NewDecoder(res.Body).Decode(&resBody); err != nil {
+		t.Errorf("Erro ao decodificar o corpo da resposta: %v", err)
+	}
+
+	if expectedBody != resBody {
+		t.Errorf("Corpo de resposta esperado: %v, recebeu: %v", expectedBody, resBody)
+	}
+}
+
+func TestInvalidDTO(t *testing.T) {
+	setupEnv(t)
+
+	dto := dto.SignInDTO{}
+
+	var dtoBytes bytes.Buffer
+
+	if err := json.NewEncoder(&dtoBytes).Encode(dto); err != nil {
+		t.Errorf("Erro ao codificar dto: %v", err)
+	}
+
+	res := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodPost, "/auth/sing-in", &dtoBytes)
+
+	SignIn(res, req)
+
+	if http.StatusForbidden != res.Code {
+		t.Errorf("Código de status esperado: %d, recebeu: %d", http.StatusForbidden, res.Code)
+	}
+
+	expectedBody := models.BaseResponse{
+		Message:      "O email é obrigatório e tem que ser uma string.\nA senha é obrigatória e tem que ser uma string.",
+		AlertVariant: models.WarningAlertVariant,
+	}
+
+	var resBody models.BaseResponse
+
+	if err := json.NewDecoder(res.Body).Decode(&resBody); err != nil {
+		t.Errorf("Erro ao decodificar o corpo da resposta: %v", err)
+	}
+
+	if expectedBody != resBody {
+		t.Errorf("Corpo de resposta esperado: %v, corpo de resposta recebido: %v", expectedBody, resBody)
+	}
+}
+
+func TestInvalidCredentials(t *testing.T) {
+	setupEnv(t)
 
 	db, err := dbservice.GetDbConnection()
 
-	deleteSql := `
-		delete from user;
-	`
-
 	if err != nil {
-		t.Error(err)
+		t.Errorf("Erro ao criar a conexão com o banco de dados: %v", err)
 	}
 
-	sql := `
-		insert into user (name, email, password)
-		value ('Jhosef Matheus', 'jhosef.dev@gmail.com', sha2('9=0=y7MA5S>y', 256));
-	`
-
-	if _, err = db.Exec(sql); err != nil {
-		t.Errorf("Erro ao inserir usuário: %v", err)
-	}
+	setupDB(db, t)
 
 	defer dbservice.CloseDbConnection(db)
-	defer db.Exec(deleteSql)
+	defer clearDB(db)
+
+	dto := dto.SignInDTO{
+		Email:    "jhosef.dev@gmail.com",
+		Password: "teste",
+	}
+
+	var dtoBytes bytes.Buffer
+
+	if err = json.NewEncoder(&dtoBytes).Encode(dto); err != nil {
+		t.Errorf("Erro ao codificar dto: %v", err)
+	}
+
+	res := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodPost, "/auth/sing-in", &dtoBytes)
+
+	SignIn(res, req)
+
+	if http.StatusUnauthorized != res.Code {
+		t.Errorf("Código esperado: %d, código recebido: %d", http.StatusUnauthorized, res.Code)
+	}
+
+	expectedBody := models.BaseResponse{
+		Message:      "Login ou senha inválido.",
+		AlertVariant: models.WarningAlertVariant,
+	}
+
+	var resBody models.BaseResponse
+
+	if err := json.NewDecoder(res.Body).Decode(&resBody); err != nil {
+		t.Errorf("Erro ao decodificar dto: %v", err)
+	}
+
+	if expectedBody != resBody {
+		t.Errorf("Corpo de resposta esperado: %v, corpo recebido: %v", expectedBody, resBody)
+	}
+}
+
+func TestSignIn(t *testing.T) {
+	setupEnv(t)
+
+	db, err := dbservice.GetDbConnection()
+
+	if err != nil {
+		t.Errorf("Erro ao criar a conexão com o banco de dados: %v", err)
+	}
+
+	setupDB(db, t)
+
+	defer dbservice.CloseDbConnection(db)
+	defer clearDB(db)
 
 	var insertedUser models.UserModel
 
-	sql = `
+	sql := `
 		select
 			id,
 			name,
@@ -113,5 +223,30 @@ func TestSignIn(t *testing.T) {
 
 	if !resBody.User.Equals(expectedBody.User) {
 		t.Errorf("Expected user: %v, got %v", expectedBody.User, resBody.User)
+	}
+}
+
+func setupDB(db *sql.DB, t *testing.T) {
+	sql := `
+		insert into user (name, email, password)
+		value ('Jhosef Matheus', 'jhosef.dev@gmail.com', sha2('9=0=y7MA5S>y', 256));
+	`
+
+	if _, err := db.Exec(sql); err != nil {
+		t.Errorf("Erro ao inserir usuário: %v", err)
+	}
+}
+
+func clearDB(db *sql.DB) {
+	sql := `
+		delete from user;
+	`
+
+	db.Exec(sql)
+}
+
+func setupEnv(t *testing.T) {
+	if err := godotenv.Load("../../.env"); err != nil {
+		t.Errorf("Erro ao conectar no banco: %v", err)
 	}
 }
