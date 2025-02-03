@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	auth_constants "todo-manager/constants"
+	auth_constants "todo-manager/constants/auth"
 	"todo-manager/controllers/auth/dto"
 	"todo-manager/models"
 	"todo-manager/services/auth/responses"

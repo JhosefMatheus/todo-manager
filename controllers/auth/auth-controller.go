@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
-	auth_constants "todo-manager/constants"
+	auth_constants "todo-manager/constants/auth"
 	"todo-manager/controllers/auth/dto"
 	"todo-manager/models"
 	authservice "todo-manager/services/auth"

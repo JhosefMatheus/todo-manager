@@ -2,7 +2,7 @@ package authservice
 
 import (
 	"net/http"
-	auth_constants "todo-manager/constants"
+	auth_constants "todo-manager/constants/auth"
 	"todo-manager/controllers/auth/dto"
 	"todo-manager/models"
 	"todo-manager/services/auth/responses"
@@ -61,7 +61,7 @@ func SignIn(signInDTO dto.SignInDTO) (code int, errResponse *models.BaseResponse
 		}, nil
 	}
 
-	token, err := tokenservice.GenerateToken(user)
+	token, err := tokenservice.Generate(user)
 
 	if err != nil {
 		return http.StatusInternalServerError, &models.BaseResponse{
