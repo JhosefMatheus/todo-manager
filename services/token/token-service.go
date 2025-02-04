@@ -1,4 +1,4 @@
-package tokenservice
+package token_service
 
 import (
 	"fmt"

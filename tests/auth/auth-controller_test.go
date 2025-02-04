@@ -1,24 +1,23 @@
-package authcontroller
+package test
 
 import (
 	"bytes"
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	auth_constants "todo-manager/constants/auth"
+	auth_controller "todo-manager/controllers/auth"
 	"todo-manager/controllers/auth/dto"
 	"todo-manager/models"
 	"todo-manager/services/auth/responses"
-	dbservice "todo-manager/services/db"
-
-	"github.com/joho/godotenv"
+	db_service "todo-manager/services/db"
+	test_utils "todo-manager/utils/test"
 )
 
 func TestInvalidRequestMethod(t *testing.T) {
-	setupEnv(t)
+	test_utils.SetupEnv(t, "../../.env")
 
 	dto := dto.SignInDTO{}
 
@@ -31,7 +30,7 @@ func TestInvalidRequestMethod(t *testing.T) {
 	res := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodPut, "/auth/sing-in", &dtoBytes)
 
-	SignIn(res, req)
+	auth_controller.SignIn(res, req)
 
 	if http.StatusMethodNotAllowed != res.Code {
 		t.Errorf("Código de status esperado: %d, recebeu: %d", http.StatusMethodNotAllowed, res.Code)
@@ -54,7 +53,7 @@ func TestInvalidRequestMethod(t *testing.T) {
 }
 
 func TestInvalidDTO(t *testing.T) {
-	setupEnv(t)
+	test_utils.SetupEnv(t, "../../.env")
 
 	dto := dto.SignInDTO{}
 
@@ -67,7 +66,7 @@ func TestInvalidDTO(t *testing.T) {
 	res := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodPost, "/auth/sing-in", &dtoBytes)
 
-	SignIn(res, req)
+	auth_controller.SignIn(res, req)
 
 	if http.StatusForbidden != res.Code {
 		t.Errorf("Código de status esperado: %d, recebeu: %d", http.StatusForbidden, res.Code)
@@ -90,18 +89,18 @@ func TestInvalidDTO(t *testing.T) {
 }
 
 func TestInvalidCredentials(t *testing.T) {
-	setupEnv(t)
+	test_utils.SetupEnv(t, "../../.env")
 
-	db, err := dbservice.GetDbConnection()
+	db, err := db_service.GetDbConnection()
 
 	if err != nil {
 		t.Errorf("Erro ao criar a conexão com o banco de dados: %v", err)
 	}
 
-	setupDB(db, t)
+	test_utils.SetupUserTable(db, t)
 
-	defer dbservice.CloseDbConnection(db)
-	defer clearDB(db)
+	defer db_service.CloseDbConnection(db)
+	defer test_utils.ClearUserTable(db)
 
 	dto := dto.SignInDTO{
 		Email:    "jhosef.dev@gmail.com",
@@ -117,7 +116,7 @@ func TestInvalidCredentials(t *testing.T) {
 	res := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodPost, "/auth/sing-in", &dtoBytes)
 
-	SignIn(res, req)
+	auth_controller.SignIn(res, req)
 
 	if http.StatusUnauthorized != res.Code {
 		t.Errorf("Código esperado: %d, código recebido: %d", http.StatusUnauthorized, res.Code)
@@ -140,46 +139,20 @@ func TestInvalidCredentials(t *testing.T) {
 }
 
 func TestSignIn(t *testing.T) {
-	setupEnv(t)
+	test_utils.SetupEnv(t, "../../.env")
 
-	db, err := dbservice.GetDbConnection()
+	db, err := db_service.GetDbConnection()
 
 	if err != nil {
 		t.Errorf("Erro ao criar a conexão com o banco de dados: %v", err)
 	}
 
-	setupDB(db, t)
+	test_utils.SetupUserTable(db, t)
 
-	defer dbservice.CloseDbConnection(db)
-	defer clearDB(db)
+	defer db_service.CloseDbConnection(db)
+	defer test_utils.ClearUserTable(db)
 
-	var insertedUser models.UserModel
-
-	sql := `
-		select
-			id,
-			name,
-			email,
-			created_at,
-			updated_at
-		from user
-		where email = ?
-		limit 1;
-	`
-
-	rows, err := db.Query(sql, "jhosef.dev@gmail.com")
-
-	if err != nil {
-		t.Error(err)
-	}
-
-	if rows.Next() {
-		if err = rows.Scan(&insertedUser.Id, &insertedUser.Name, &insertedUser.Email, &insertedUser.CreatedAt, &insertedUser.UpdatedAt); err != nil {
-			t.Errorf("Erro ao ler resposta do banco de dados: %v", err)
-		}
-	} else {
-		t.Error("Nenhum usuário encontrado")
-	}
+	insertedUser := test_utils.GetInsertedUser(db, t)
 
 	dto := dto.SignInDTO{
 		Email:    "jhosef.dev@gmail.com",
@@ -195,7 +168,7 @@ func TestSignIn(t *testing.T) {
 	res := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodPost, "/auth/sign-in", &dtoBytes)
 
-	SignIn(res, req)
+	auth_controller.SignIn(res, req)
 
 	if http.StatusOK != res.Code {
 		t.Errorf("Código de status esperado: %d, recebeu: %d", http.StatusOK, res.Code)
@@ -225,30 +198,5 @@ func TestSignIn(t *testing.T) {
 
 	if !resBody.User.Equals(expectedBody.User) {
 		t.Errorf("Expected user: %v, got %v", expectedBody.User, resBody.User)
-	}
-}
-
-func setupDB(db *sql.DB, t *testing.T) {
-	sql := `
-		insert into user (name, email, password)
-		value ('Jhosef Matheus', 'jhosef.dev@gmail.com', sha2('9=0=y7MA5S>y', 256));
-	`
-
-	if _, err := db.Exec(sql); err != nil {
-		t.Errorf("Erro ao inserir usuário: %v", err)
-	}
-}
-
-func clearDB(db *sql.DB) {
-	sql := `
-		delete from user;
-	`
-
-	db.Exec(sql)
-}
-
-func setupEnv(t *testing.T) {
-	if err := godotenv.Load("../../.env"); err != nil {
-		t.Errorf("Erro ao conectar no banco: %v", err)
 	}
 }

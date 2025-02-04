@@ -1,4 +1,4 @@
-package authservice
+package auth_service
 
 import (
 	"net/http"

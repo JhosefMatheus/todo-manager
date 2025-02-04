@@ -1,4 +1,4 @@
-package tokencontroller
+package token_controller
 
 import (
 	"encoding/json"
@@ -6,7 +6,7 @@ import (
 	"strings"
 	token_constants "todo-manager/constants/token"
 	"todo-manager/models"
-	tokenservice "todo-manager/services/token"
+	token_service "todo-manager/services/token"
 	"todo-manager/services/token/responses"
 )
 
@@ -62,7 +62,7 @@ func Verify(w http.ResponseWriter, req *http.Request) {
 
 	token := strings.TrimPrefix(authorizationHeader, bearerPrefix)
 
-	user, err := tokenservice.Verify(token)
+	user, err := token_service.Verify(token)
 
 	if err != nil {
 		responseBody := models.BaseResponse{

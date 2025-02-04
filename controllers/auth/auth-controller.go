@@ -1,4 +1,4 @@
-package authcontroller
+package auth_controller
 
 import (
 	"encoding/json"
@@ -7,7 +7,7 @@ import (
 	auth_constants "todo-manager/constants/auth"
 	"todo-manager/controllers/auth/dto"
 	"todo-manager/models"
-	authservice "todo-manager/services/auth"
+	auth_service "todo-manager/services/auth"
 )
 
 func SignIn(w http.ResponseWriter, req *http.Request) {
@@ -68,7 +68,7 @@ func SignIn(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	status, errResponse, signInResponse := authservice.SignIn(dto)
+	status, errResponse, signInResponse := auth_service.SignIn(dto)
 
 	w.WriteHeader(status)
 
