@@ -9,7 +9,7 @@ import (
 	"testing"
 	token_constants "todo-manager/constants/token"
 	auth_controller "todo-manager/controllers/auth"
-	"todo-manager/controllers/auth/dto"
+	auth_dto "todo-manager/controllers/auth/dto"
 	token_controller "todo-manager/controllers/token"
 	"todo-manager/models"
 	authresponses "todo-manager/services/auth/responses"
@@ -152,7 +152,7 @@ func TestValidToken(t *testing.T) {
 
 	insertedUser := test_utils.GetInsertedUser(db, t)
 
-	dto := dto.SignInDTO{
+	dto := auth_dto.SignInDTO{
 		Email:    "jhosef.dev@gmail.com",
 		Password: "9=0=y7MA5S>y",
 	}

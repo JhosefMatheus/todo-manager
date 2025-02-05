@@ -5,7 +5,7 @@ import (
 	"io"
 	"net/http"
 	auth_constants "todo-manager/constants/auth"
-	"todo-manager/controllers/auth/dto"
+	auth_dto "todo-manager/controllers/auth/dto"
 	"todo-manager/models"
 	auth_service "todo-manager/services/auth"
 )
@@ -33,7 +33,7 @@ func SignIn(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	var dto dto.SignInDTO
+	var dto auth_dto.SignInDTO
 
 	if err = json.Unmarshal(body, &dto); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

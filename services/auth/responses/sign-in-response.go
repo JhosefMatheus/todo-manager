@@ -1,4 +1,4 @@
-package responses
+package auth_responses
 
 import "todo-manager/models"
 

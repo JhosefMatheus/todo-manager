@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	auth_controller "todo-manager/controllers/auth"
+	project_controller "todo-manager/controllers/project"
 	token_controller "todo-manager/controllers/token"
 	middleware "todo-manager/middlewares"
 
@@ -21,6 +22,7 @@ func main() {
 
 	mux.HandleFunc("/auth/sign-in", auth_controller.SignIn)
 	mux.HandleFunc("/token/verify", token_controller.Verify)
+	mux.HandleFunc("/project", project_controller.Create)
 
 	if err := http.ListenAndServe(":8080", middleware.GlobalMiddleware(mux)); err != nil {
 		log.Fatalf("Erro ao iniciar o servidor: %v", err)

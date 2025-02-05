@@ -1,4 +1,4 @@
-package responses
+package token_responses
 
 import "todo-manager/models"
 

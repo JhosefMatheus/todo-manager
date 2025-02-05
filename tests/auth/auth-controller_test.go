@@ -9,9 +9,9 @@ import (
 	"testing"
 	auth_constants "todo-manager/constants/auth"
 	auth_controller "todo-manager/controllers/auth"
-	"todo-manager/controllers/auth/dto"
+	auth_dto "todo-manager/controllers/auth/dto"
 	"todo-manager/models"
-	"todo-manager/services/auth/responses"
+	auth_responses "todo-manager/services/auth/responses"
 	db_service "todo-manager/services/db"
 	test_utils "todo-manager/utils/test"
 )
@@ -19,7 +19,7 @@ import (
 func TestInvalidRequestMethod(t *testing.T) {
 	test_utils.SetupEnv(t, "../../.env")
 
-	dto := dto.SignInDTO{}
+	dto := auth_dto.SignInDTO{}
 
 	var dtoBytes bytes.Buffer
 
@@ -55,7 +55,7 @@ func TestInvalidRequestMethod(t *testing.T) {
 func TestInvalidDTO(t *testing.T) {
 	test_utils.SetupEnv(t, "../../.env")
 
-	dto := dto.SignInDTO{}
+	dto := auth_dto.SignInDTO{}
 
 	var dtoBytes bytes.Buffer
 
@@ -102,7 +102,7 @@ func TestInvalidCredentials(t *testing.T) {
 	defer db_service.CloseDbConnection(db)
 	defer test_utils.ClearUserTable(db)
 
-	dto := dto.SignInDTO{
+	dto := auth_dto.SignInDTO{
 		Email:    "jhosef.dev@gmail.com",
 		Password: "teste",
 	}
@@ -154,7 +154,7 @@ func TestSignIn(t *testing.T) {
 
 	insertedUser := test_utils.GetInsertedUser(db, t)
 
-	dto := dto.SignInDTO{
+	dto := auth_dto.SignInDTO{
 		Email:    "jhosef.dev@gmail.com",
 		Password: "9=0=y7MA5S>y",
 	}
@@ -174,13 +174,13 @@ func TestSignIn(t *testing.T) {
 		t.Errorf("Código de status esperado: %d, recebeu: %d", http.StatusOK, res.Code)
 	}
 
-	var resBody responses.SignInResponse
+	var resBody auth_responses.SignInResponse
 
 	if err = json.NewDecoder(res.Body).Decode(&resBody); err != nil {
 		t.Errorf("Erro ao decodificar o corpo da resposta: %v", err)
 	}
 
-	expectedBody := responses.SignInResponse{
+	expectedBody := auth_responses.SignInResponse{
 		BaseResponse: models.BaseResponse{
 			Message:      auth_constants.SignInSuccessMessage,
 			AlertVariant: models.SuccessAlertVariant,

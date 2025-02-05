@@ -7,7 +7,7 @@ import (
 	token_constants "todo-manager/constants/token"
 	"todo-manager/models"
 	token_service "todo-manager/services/token"
-	"todo-manager/services/token/responses"
+	token_responses "todo-manager/services/token/responses"
 )
 
 func Verify(w http.ResponseWriter, req *http.Request) {
@@ -79,7 +79,7 @@ func Verify(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	responseBody := responses.TokenVerifyResponse{
+	responseBody := token_responses.TokenVerifyResponse{
 		BaseResponse: models.BaseResponse{
 			Message:      token_constants.TokenVerifySuccessMessage,
 			AlertVariant: models.SuccessAlertVariant,

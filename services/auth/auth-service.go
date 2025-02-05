@@ -3,14 +3,14 @@ package auth_service
 import (
 	"net/http"
 	auth_constants "todo-manager/constants/auth"
-	"todo-manager/controllers/auth/dto"
+	auth_dto "todo-manager/controllers/auth/dto"
 	"todo-manager/models"
-	"todo-manager/services/auth/responses"
+	auth_responses "todo-manager/services/auth/responses"
 	dbservice "todo-manager/services/db"
 	tokenservice "todo-manager/services/token"
 )
 
-func SignIn(signInDTO dto.SignInDTO) (code int, errResponse *models.BaseResponse, response *responses.SignInResponse) {
+func SignIn(signInDTO auth_dto.SignInDTO) (code int, errResponse *models.BaseResponse, response *auth_responses.SignInResponse) {
 	db, err := dbservice.GetDbConnection()
 
 	if err != nil {
@@ -70,7 +70,7 @@ func SignIn(signInDTO dto.SignInDTO) (code int, errResponse *models.BaseResponse
 		}, nil
 	}
 
-	return http.StatusOK, nil, &responses.SignInResponse{
+	return http.StatusOK, nil, &auth_responses.SignInResponse{
 		BaseResponse: models.BaseResponse{
 			Message:      auth_constants.SignInSuccessMessage,
 			AlertVariant: models.SuccessAlertVariant,
