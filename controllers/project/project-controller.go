@@ -7,6 +7,7 @@ import (
 	project_constants "todo-manager/constants/project"
 	project_dto "todo-manager/controllers/project/dto"
 	"todo-manager/models"
+	project_service "todo-manager/services/project"
 )
 
 func Create(w http.ResponseWriter, req *http.Request) {
@@ -60,5 +61,19 @@ func Create(w http.ResponseWriter, req *http.Request) {
 		}
 
 		return
+	}
+
+	status, errorResponseBody, successResponseBody := project_service.Create(dto)
+
+	w.WriteHeader(status)
+
+	if errorResponseBody != nil {
+		if err := json.NewEncoder(w).Encode(errorResponseBody); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+	} else {
+		if err := json.NewEncoder(w).Encode(successResponseBody); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
 	}
 }

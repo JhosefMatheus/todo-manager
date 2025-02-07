@@ -64,3 +64,32 @@ func GetInsertedUser(db *sql.DB, t *testing.T) models.UserModel {
 
 	return insertedUser
 }
+
+func SetupProjectTable(db *sql.DB, t *testing.T) int64 {
+	sql := `
+		insert into project (name)
+		value ('Teste');
+	`
+
+	result, err := db.Exec(sql)
+
+	if err != nil {
+		t.Errorf("Erro ao inserir projeto: %v", err)
+	}
+
+	id, err := result.LastInsertId()
+
+	if err != nil {
+		t.Errorf("Erro ao pegar id do projeto inserido: %v", err)
+	}
+
+	return id
+}
+
+func ClearProjectTable(db *sql.DB) {
+	sql := `
+			delete from project;
+		`
+
+	db.Exec(sql)
+}
